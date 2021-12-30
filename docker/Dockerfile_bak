@@ -1,0 +1,71 @@
+# Gradescope uses Ubuntu 18.04 as the base image.
+# Use ubuntu 20 to get mysql 8.0.
+FROM gradescope/auto-builds:ubuntu-20.04
+
+# Set container metadata.
+LABEL MAINTAINER="Yihong Wang <wang.yihong@mail.shufe.edu.cn>"
+LABEL VERSION="1.0"
+
+ENV http_proxy http://192.168.2.249:7890
+ENV https_proxy http://192.168.2.249:7890
+#ENV MYSQL_ROOT_PASSWORD=sheep
+# ENV DEBIAN_FRONTEND=noninteractive
+
+# RUN cp /etc/apt/sources.list /etc/apt/sources.list.bak 
+# RUN echo " " > /etc/apt/sources.list
+# RUN echo "deb http://repo.mysql.com/apt/ubuntu/ bionic mysql-apt-config" >> /etc/apt/sources.list
+# RUN echo "deb http://repo.mysql.com/apt/ubuntu/ bionic mysql-8.0" >> /etc/apt/sources.list
+# RUN echo "deb http://repo.mysql.com/apt/ubuntu/ bionic mysql-8.0-tools" >> /etc/apt/sources.list
+# RUN echo "deb-src http://repo.mysql.com/apt/ubuntu/ bionic mysql-8.0" >> /etc/apt/sources.list
+
+#RUN apt-get clean 
+#RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 8C718D3B5072E1F5
+
+RUN apt-get update --fix-missing
+RUN DEBIAN_FRONTEND=noninteractive apt-get install -y libxml2-dev tzdata libcurl4-openssl-dev libssl-dev r-base 
+RUN apt-get remove --auto-remove mariadb-server
+#RUN wget https://repo.mysql.com//mysql-apt-config_0.8.12-1_all.deb
+#RUN dpkg -i mysql-apt-config_0.8.12-1_all.deb
+#RUN sed -i 's/bionic/'$(lsb_release -sc)'/' /etc/apt/sources.list.d/mysql.list
+# RUN apt purge mysql-common
+#RUN apt-get install -y r-base 
+
+RUN echo "#!/bin/sh\nexit 0" > /usr/sbin/policy-rc.d
+
+ENV MYSQL_PWD Pwd123
+RUN echo "mysql-server mysql-server/root_password password $MYSQL_PWD" | debconf-set-selections
+RUN echo "mysql-server mysql-server/root_password_again password $MYSQL_PWD" | debconf-set-selections
+RUN DEBIAN_FRONTEND=noninteractive apt-get -y install mysql-server
+
+COPY Northwind.MySQL5.sql /autograder/source/
+#COPY database.sql /autograder/source/
+#RUN mkdir -p /var/run/mysqld
+#RUN chown mysql /var/run/mysqld/
+#RUN chmod -R 777 /var/lib/mysql/
+#RUN usermod -d /var/lib/mysql/ mysql
+#RUN service mysql start
+#RUN service mysql stop
+#RUN usermod -d /var/lib/mysql/ mysql
+#RUN chmod 777 /var/run/mysqld/mysqld.sock
+#RUN find / -name mysqld.sock
+#RUN /usr/bin/mysql_install_db     
+#RUN /usr/bin/mysqld_safe 
+#RUN /usr/bin/mysqld_safe --skip-grant-tables & 
+#RUN ln -s /run/mysqld/mysql.sock /var/run/mysqld/mysqld.sock
+RUN service mysql start
+
+#RUN mysql -u root -p sheep
+
+#RUN dpkg -s mysql-server | grep Status
+#RUN mysql --version
+#RUN mysqld 
+#RUN service mysql status
+#RUN service  --status-all
+
+#RUN mysql < /autograder/source/Northwind.MySQL5.sql
+
+RUN mysql -v
+
+# install R packages
+#RUN Rscript -e "install.packages('pacman')" 
+#RUN Rscript -e "pacman::p_load(tidyverse, RMariaDB)"
